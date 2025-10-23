@@ -39,47 +39,47 @@ services:
       caddy.crowdsec.2_ticker_interval: 15s
       # caddy.crowdsec.2_appsec_url: http://crowdsec:7422
       # crowdsec snippet
-      caddy_0: (crowdsec)
-      caddy_0.0_crowdsec:
-      # caddy_0.1_appsec:
+      caddy_1: (crowdsec)
+      caddy_1.0_crowdsec:
+      # caddy_1.1_appsec:
       # log config for caddy / crowdsec
-      caddy_0.log.output: file /var/log/caddy/access.log
-      caddy_0.log.output.roll_size: 10MB
-      caddy_0.log.output.roll_keep: 5
-      caddy_0.log.output.roll_keep_days: 14
-      caddy_0.log.output.roll_local_time:
+      caddy_1.log.output: file /var/log/caddy/access.log
+      caddy_1.log.output.roll_size: 10MB
+      caddy_1.log.output.roll_keep: 5
+      # caddy_1.log.output.roll_keep_days: 14
+      caddy_1.log.output.roll_local_time:
       # Wordpress rate limiting snippet
-      caddy_1: (wordpress_rate_limit)
-      caddy_1.rate_limit.log_key:
-      caddy_1.rate_limit.jitter: 5
+      caddy_2: (wordpress_rate_limit)
+      caddy_2.rate_limit.log_key:
+      caddy_2.rate_limit.jitter: 5
       # login attempts
-      caddy_1.rate_limit.0_zone: login_attempts
-      caddy_1.rate_limit.0_zone.0_match.path: /wp-login.php
-      caddy_1.rate_limit.0_zone.0_match.method: POST
-      caddy_1.rate_limit.0_zone.key: '{client_ip}'
-      caddy_1.rate_limit.0_zone.window: 1m
-      caddy_1.rate_limit.0_zone.events: 5
+      caddy_2.rate_limit.0_zone: login_attempts
+      caddy_2.rate_limit.0_zone.0_match.path: /wp-login.php
+      caddy_2.rate_limit.0_zone.0_match.method: POST
+      caddy_2.rate_limit.0_zone.key: '{client_ip}'
+      caddy_2.rate_limit.0_zone.window: 1m
+      caddy_2.rate_limit.0_zone.events: 5
       # login attempts
-      caddy_1.rate_limit.1_zone: comment_spam
-      caddy_1.rate_limit.1_zone.0_match.path: /wp-comments-post.php
-      caddy_1.rate_limit.1_zone.0_match.method: POST
-      caddy_1.rate_limit.1_zone.key: '{client_ip}'
-      caddy_1.rate_limit.1_zone.window: 10m
-      caddy_1.rate_limit.1_zone.events: 10
+      caddy_2.rate_limit.1_zone: comment_spam
+      caddy_2.rate_limit.1_zone.0_match.path: /wp-comments-post.php
+      caddy_2.rate_limit.1_zone.0_match.method: POST
+      caddy_2.rate_limit.1_zone.key: '{client_ip}'
+      caddy_2.rate_limit.1_zone.window: 10m
+      caddy_2.rate_limit.1_zone.events: 10
       # xmlrpc abuse
-      caddy_1.rate_limit.2_zone: xmlrpc_abuse
-      caddy_1.rate_limit.2_zone.0_match.path: /xmlrpc.php
-      caddy_1.rate_limit.2_zone.0_match.method: POST
-      caddy_1.rate_limit.2_zone.key: '{client_ip}'
-      caddy_1.rate_limit.2_zone.window: 1m
-      caddy_1.rate_limit.2_zone.events: 10
+      caddy_2.rate_limit.2_zone: xmlrpc_abuse
+      caddy_2.rate_limit.2_zone.0_match.path: /xmlrpc.php
+      caddy_2.rate_limit.2_zone.0_match.method: POST
+      caddy_2.rate_limit.2_zone.key: '{client_ip}'
+      caddy_2.rate_limit.2_zone.window: 1m
+      caddy_2.rate_limit.2_zone.events: 10
       # trackback spam
-      caddy_1.rate_limit.3_zone: trackback_spam
-      caddy_1.rate_limit.3_zone.0_match.path: /wp-trackback.php
-      caddy_1.rate_limit.3_zone.0_match.method: POST
-      caddy_1.rate_limit.3_zone.key: '{client_ip}'
-      caddy_1.rate_limit.3_zone.window: 1h
-      caddy_1.rate_limit.3_zone.events: 5
+      caddy_2.rate_limit.3_zone: trackback_spam
+      caddy_2.rate_limit.3_zone.0_match.path: /wp-trackback.php
+      caddy_2.rate_limit.3_zone.0_match.method: POST
+      caddy_2.rate_limit.3_zone.key: '{client_ip}'
+      caddy_2.rate_limit.3_zone.window: 1h
+      caddy_2.rate_limit.3_zone.events: 5
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock:ro'
       - './caddy_data:/data'

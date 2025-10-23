@@ -19,7 +19,7 @@ We're using a custom Caddy image with [Caddy Docker Proxy](https://github.com/lu
 
 ### TLS
 
-If a service is proxied through Cloudflare, use `caddy_0.tls=internal` with CF's "Strict" SSL setting.
+If a service is proxied through Cloudflare, use `caddy.tls: internal` with CF's "Strict" SSL setting.
 
 
 ## CrowdSec
@@ -30,7 +30,9 @@ It processes logs directly from Caddy, so should work with any service as long a
 
 ```yaml
 labels:
-  - caddy_0.0_import=crowdsec
+    caddy: example.com
+    caddy.0_import: crowdsec
+    caddy.1_reverse_proxy: "{{upstreams 80}}"
 ```
 
 ### CrowdSec CLI
