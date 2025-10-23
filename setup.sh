@@ -69,9 +69,7 @@ echo -e "${CYAN}Updating system & packages...${ENDCOLOR}"
 curl -s https://kopia.io/signing-key | gpg --dearmor -o /usr/share/keyrings/kopia-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/kopia-keyring.gpg] http://packages.kopia.io/apt/ stable main" | tee /etc/apt/sources.list.d/kopia.list
 
-# update system - apt update runs in docker script
-apt update
-apt upgrade -y
+apt update && apt upgrade -y
 apt install kopia rsync unattended-upgrades zsh bat eza ncdu apache2-utils clang ufw jq htop tmux -y
 
 curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
