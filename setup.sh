@@ -100,6 +100,7 @@ sed -i "s/REPLACE_ME/$ssh_port/" "/home/$username/firewall.sh"
 
 # replace docker compose file with user input, and start
 sed -i "s/CHANGE_TO_USERNAME/$username/" "/home/$username/server/docker-compose.yml"
+docker network create caddy
 docker compose -f "/home/$username/server/docker-compose.yml" up -d
 
 # add user to docker users
