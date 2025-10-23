@@ -1,0 +1,9 @@
+[Unit]
+Description=Optimize images
+
+[Service]
+User=root
+ExecStart=docker run --rm -v /home/USERNAME/sites:/images -v /root/image-backups:/backup -e MAX_AGE=23 -e MIN_SIZE=900 -e MAX_HEIGHT=2500 -e MAX_WIDTH=2500 henrygd/optimize
+
+[Install]
+WantedBy=multi-user.target

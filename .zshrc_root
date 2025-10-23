@@ -1,0 +1,65 @@
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+
+# Install starship if it's not installed
+# if ! command -v starship &> /dev/null; then
+#   curl -sS https://starship.rs/install.sh | sh
+# fi
+
+# History
+HISTSIZE=5000
+HISTFILE=~/.zsh_history
+SAVEHIST=$HISTSIZE
+HISTDUP=erase
+setopt appendhistory
+setopt sharehistory
+setopt hist_ignore_space
+setopt hist_ignore_all_dups
+setopt hist_save_no_dups
+setopt hist_ignore_dups
+setopt hist_find_no_dups
+
+# Keybindings
+bindkey '^p' history-search-backward
+bindkey '^n' history-search-forward
+bindkey '^[w' kill-region
+
+# vim mode
+bindkey -v
+bindkey -M viins jj vi-cmd-mode
+
+# Preferred editor for local and remote sessions
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='vim'
+else
+  export EDITOR='nvim'
+fi
+
+# Add neovim to PATH
+export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+
+# Aliases
+alias c='clear'
+alias vim="nvim"
+alias vi="nvim"
+alias dcu="docker compose up -d"
+alias dcd="docker compose down"
+alias dcr="docker compose restart"
+alias dl="docker logs -f -n 30"
+alias dcl="docker compose logs -f -n 30"
+alias dce="docker compose exec"
+# alias lg="lazygit"
+alias ls="eza --icons=always"
+alias bat="batcat"
+alias cat="bat"
+# alias b="yazi"
+alias tree="ls --tree"
+alias l="ls -lha"
+alias ctop="docker run --rm -ti --volume /var/run/docker.sock:/var/run/docker.sock:ro quay.io/vektorlab/ctop:latest"
+
+# Shell integrations
+eval "$(fzf --zsh)"
+eval "$(zoxide init --cmd cd zsh)"
+
+# Initialize Starship
+eval "$(starship init zsh)"

@@ -1,0 +1,149 @@
+networks:
+  caddy:
+    external: true
+volumes:
+  crowdsec-db:
+  caddy-logs:
+
+services:
+  caddy:
+    container_name: caddy
+    image: 'ghcr.io/henrygd/caddy-proxy:0'
+    restart: unless-stopped
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    environment:
+      - CADDY_DOCKER_POLLING_INTERVAL=15
+      - CADDY_DOCKER_EVENT_THROTTLE_INTERVAL=2s
+      - CADDY_INGRESS_NETWORKS=caddy
+      - CROWDSEC_API_KEY=${CROWDSEC_API_KEY}
+    networks:
+      - caddy
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    labels:
+      # caddy.email: name@example.com
+      # caddy.debug:
+      caddy.0_order: crowdsec first
+      # caddy.1_order: appsec after crowdsec
+      caddy.servers.1_trusted_proxies: combine
+      caddy.servers.1_trusted_proxies.cloudflare:
+      caddy.servers.1_trusted_proxies.static: private_ranges
+      caddy.servers.2_trusted_proxies_strict:
+      caddy.servers.client_ip_headers: Cf-Connecting-Ip
+      # crowdsec config
+      caddy.crowdsec.0_api_url: http://crowdsec:8080
+      caddy.crowdsec.1_api_key: '{$$CROWDSEC_API_KEY}'
+      caddy.crowdsec.2_ticker_interval: 15s
+      # caddy.crowdsec.2_appsec_url: http://crowdsec:7422
+      # crowdsec snippet
+      caddy_0: (crowdsec)
+      caddy_0.0_crowdsec:
+      # caddy_0.1_appsec:
+      # log config for caddy / crowdsec
+      caddy_0.log.output: file /var/log/caddy/access.log
+      caddy_0.log.output.roll_size: 10MB
+      caddy_0.log.output.roll_keep: 5
+      caddy_0.log.output.roll_keep_days: 14
+      caddy_0.log.output.roll_local_time:
+      # Wordpress rate limiting snippet
+      caddy_1: (wordpress_rate_limit)
+      caddy_1.rate_limit.log_key:
+      caddy_1.rate_limit.jitter: 5
+      # login attempts
+      caddy_1.rate_limit.0_zone: login_attempts
+      caddy_1.rate_limit.0_zone.0_match.path: /wp-login.php
+      caddy_1.rate_limit.0_zone.0_match.method: POST
+      caddy_1.rate_limit.0_zone.key: '{client_ip}'
+      caddy_1.rate_limit.0_zone.window: 1m
+      caddy_1.rate_limit.0_zone.events: 5
+      # login attempts
+      caddy_1.rate_limit.1_zone: comment_spam
+      caddy_1.rate_limit.1_zone.0_match.path: /wp-comments-post.php
+      caddy_1.rate_limit.1_zone.0_match.method: POST
+      caddy_1.rate_limit.1_zone.key: '{client_ip}'
+      caddy_1.rate_limit.1_zone.window: 10m
+      caddy_1.rate_limit.1_zone.events: 10
+      # xmlrpc abuse
+      caddy_1.rate_limit.2_zone: xmlrpc_abuse
+      caddy_1.rate_limit.2_zone.0_match.path: /xmlrpc.php
+      caddy_1.rate_limit.2_zone.0_match.method: POST
+      caddy_1.rate_limit.2_zone.key: '{client_ip}'
+      caddy_1.rate_limit.2_zone.window: 1m
+      caddy_1.rate_limit.2_zone.events: 10
+      # trackback spam
+      caddy_1.rate_limit.3_zone: trackback_spam
+      caddy_1.rate_limit.3_zone.0_match.path: /wp-trackback.php
+      caddy_1.rate_limit.3_zone.0_match.method: POST
+      caddy_1.rate_limit.3_zone.key: '{client_ip}'
+      caddy_1.rate_limit.3_zone.window: 1h
+      caddy_1.rate_limit.3_zone.events: 5
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - './caddy_data:/data'
+      - caddy-logs:/var/log/caddy
+
+  crowdsec:
+    image: docker.io/crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    environment:
+      # - DEBUG=true
+      - TZ=America/Detroit
+      - USE_WAL=true
+      - GID=1000
+      - COLLECTIONS=crowdsecurity/caddy crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/wordpress
+      - BOUNCER_KEY_CADDY=${CROWDSEC_API_KEY}
+    volumes:
+      - crowdsec-db:/var/lib/crowdsec/data/
+      - caddy-logs:/var/log/caddy:ro
+      - /etc/server-setup/crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
+    networks:
+      - caddy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges=true
+
+  watchtower:
+    image: beatkind/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    environment:
+      - WATCHTOWER_CLEANUP=true
+
+  # filebrowser:
+  #   image: hurlenko/filebrowser
+  #   container_name: filebrowser
+  #   restart: unless-stopped
+  #   user: '65534:65534'
+  #   ports:
+  #     - 127.0.0.1:6900:8080
+  #   networks:
+  #     - coolify
+  #   volumes:
+  #     - ../sites:/data
+  #     - ./filebrowser/config:/config
+  #   environment:
+  #     - FB_BASEURL=/
+    # labels:
+    # caddy: files.example.com
+    # caddy.0_import: crowdsec
+    # # rate_limit
+    # caddy.1_rate_limit:
+    # caddy.1_rate_limit.log_key:
+    # caddy.1_rate_limit.jitter: 5
+    # caddy.1_rate_limit.0_zone: login_attempts
+    # caddy.1_rate_limit.0_zone.0_match.path: /api/login
+    # caddy.1_rate_limit.0_zone.0_match.method: POST
+    # caddy.1_rate_limit.0_zone.key: '{client_ip}'
+    # caddy.1_rate_limit.0_zone.window: 1m
+    # caddy.1_rate_limit.0_zone.events:  2
+    # # ssl
+    # caddy.2_tls: internal
+    # # reverse proxy
+    # caddy.3_reverse_proxy: "{{upstreams 8080}}"
+    # caddy.3_reverse_proxy.0_header_up: X-Real-IP {client_ip}
+    # caddy.3_reverse_proxy.1_header_up: X-Forwarded-For {client_ip}

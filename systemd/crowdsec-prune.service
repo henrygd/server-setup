@@ -1,0 +1,9 @@
+[Unit]
+Description=Prune CrowdSec bouncers older than 60 minutes
+
+[Service]
+Type=oneshot
+ExecStart=docker exec crowdsec cscli bouncers prune -d 60m --force
+
+[Install]
+WantedBy=multi-user.target 

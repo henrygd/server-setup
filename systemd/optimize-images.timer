@@ -1,0 +1,9 @@
+[Unit]
+Description=Optimize Images Every Night at 12:30 AM
+
+[Timer]
+OnCalendar=*-*-* 00:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
