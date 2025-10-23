@@ -89,16 +89,20 @@ tar -xzf /tmp/fzf.tar.gz -C /usr/bin/
 curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
 sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
 
-# docker stuff
-echo -e "${CYAN}Setting up docker containers...${ENDCOLOR}"
-
 # copy files
 mkdir -p "/home/$username/server"
 cp /tmp/cs/docker-compose.yml "/home/$username/server/docker-compose.yml"
 cp /tmp/cs/firewall.sh "/home/$username/firewall.sh"
 sed -i "s/REPLACE_ME/$ssh_port/" "/home/$username/firewall.sh"
 
-# replace docker compose file with user input, and start
+# proxy config
+mkdir -p "/etc/server-setup/crowdsec"
+cp "/tmp/cs/crowdsec/acquis.yaml" "/etc/server-setup/crowdsec/acquis.yaml"
+echo "CROWDSEC_API_KEY=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32)" >"/home/$username/server/.env"
+
+echo -e "${CYAN}Setting up docker containers...${ENDCOLOR}"
+
+# start docker containers
 sed -i "s/CHANGE_TO_USERNAME/$username/" "/home/$username/server/docker-compose.yml"
 docker network create caddy
 docker compose -f "/home/$username/server/docker-compose.yml" up -d
@@ -157,11 +161,6 @@ cp "/tmp/wp/config/my.cnf" "/etc/server-setup/mariadb/my.cnf"
 cp "/tmp/wp/config/db-entrypoint.sh" "/etc/server-setup/mariadb/db-entrypoint.sh"
 chmod +x "/etc/server-setup/mariadb/db-entrypoint.sh"
 
-# proxy config
-mkdir -p "/etc/server-setup/crowdsec"
-cp "/tmp/cs/crowdsec/acquis.yaml" "/etc/server-setup/crowdsec/acquis.yaml"
-echo "CROWDSEC_API_KEY=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32)" >"/home/$username/server/.env"
-
 # configure zsh
 cp /tmp/cs/.zshrc "/home/$username/.zshrc"
 cp /tmp/cs/.zshrc_root "/root/.zshrc"
@@ -211,10 +210,10 @@ echo "Host $(hostname)"
 echo "    HostName $(curl -s -4 ifconfig.me)"
 echo "    Port $ssh_port"
 echo "    User $username"
-echo "    LocalForward 6901 127.0.0.1:6901"
-echo "    LocalForward 6902 127.0.0.1:6902"
-echo "    LocalForward 6903 127.0.0.1:6903"
-echo "    LocalForward 8000 127.0.0.1:8000"
+# echo "    LocalForward 6901 127.0.0.1:6901"
+# echo "    LocalForward 6902 127.0.0.1:6902"
+# echo "    LocalForward 6903 127.0.0.1:6903"
+# echo "    LocalForward 8000 127.0.0.1:8000"
 echo "    ServerAliveInterval 60"
 echo -e "    ServerAliveCountMax 10\n"
 
