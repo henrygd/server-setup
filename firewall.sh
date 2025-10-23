@@ -1,7 +1,5 @@
 #! /bin/bash
 
-set -e
-
 # runs on first login to set up and save firewall rules
 
 SSH_PORT=REPLACE_ME
