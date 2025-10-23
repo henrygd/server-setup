@@ -124,8 +124,6 @@ systemctl enable crowdsec-prune.timer >/dev/null 2>&1
 # systemctl start kopia-server.service
 # systemctl enable kopia-server.service >/dev/null 2>&1
 
-# disable userland-proxy
-jq '. + { "userland-proxy": false }' /etc/docker/daemon.json >/etc/docker/daemon.json.new && mv /etc/docker/daemon.json.new /etc/docker/daemon.json
 # update SSH config
 echo -e "\n${CYAN}Updating SSH config...${ENDCOLOR}"
 {
@@ -181,9 +179,6 @@ git clone https://github.com/LazyVim/starter "/home/$username/.config/nvim" --de
 
 # permissions
 chown -R "$username": "/home/$username"
-# filebrowser uses nobody user bc that's what the wp container uses
-mkdir -p "/home/$username/server/filebrowser"
-chown -R nobody:nogroup "/home/$username/server/filebrowser"
 
 # unattended-upgrades
 echo -e "${CYAN}Setting up unattended-upgrades...${ENDCOLOR}"
