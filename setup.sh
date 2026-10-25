@@ -159,8 +159,11 @@ rm "/home/$username/.local/bin/boost.tar.gz"
 # chown -R "$username:" "/home/$username/.local/bin"
 
 # install zoxide
-sudo -u "$username" curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sudo -u "$username" bash
-ln -s "/home/$username/.local/bin/zoxide" "/usr/local/bin/zoxide"
+# Install system-wide as root to avoid sudo prompts for root-owned user directories.
+zoxide_installer=$(mktemp)
+curl -fsSL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh -o "$zoxide_installer"
+bash "$zoxide_installer" --bin-dir /usr/local/bin --man-dir /usr/local/share/man
+rm -f "$zoxide_installer"
 
 # clone wordpress repo and copy config
 mkdir -p "/etc/server-setup/mariadb"
