@@ -14,6 +14,14 @@ ENDCOLOR="\e[0m"
 CUR_TIMEZONE=$(timedatectl show | grep zone | sed 's/Timezone=//g')
 KOPIA_PASSWORD=$(tr </dev/urandom -dc A-Z-a-z-0-9 | head -c"${1:-10}")
 ARCHITECTURE=$(dpkg --print-architecture)
+case "$ARCHITECTURE" in
+  amd64) NVIM_ARCH=x86_64 ;;
+  arm64) NVIM_ARCH=arm64 ;;
+  *)
+    echo "Unsupported architecture: $ARCHITECTURE (expected amd64 or arm64)" >&2
+    exit 1
+    ;;
+esac
 
 # intro message
 echo -e "${GREEN}Welcome! This script should be run as the root user on a new Debian or Ubuntu server.${ENDCOLOR}\n"
@@ -82,12 +90,16 @@ echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable
 sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
 
 # download fzf binary
-wget -O /tmp/fzf.tar.gz "https://github.com/junegunn/fzf/releases/download/v0.60.3/fzf-0.60.3-linux_amd64.tar.gz"
+# Set FZF_VERSION to pin a release; otherwise use the latest stable release.
+FZF_VERSION=${FZF_VERSION:-$(curl -fsSL https://api.github.com/repos/junegunn/fzf/releases/latest | jq -er '.tag_name | select(type == "string" and length > 0)')}
+FZF_VERSION=${FZF_VERSION#v}
+wget -O /tmp/fzf.tar.gz "https://github.com/junegunn/fzf/releases/download/v${FZF_VERSION}/fzf-${FZF_VERSION}-linux_${ARCHITECTURE}.tar.gz"
 tar -xzf /tmp/fzf.tar.gz -C /usr/bin/
 
 # neovim
-curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
-sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
+curl -fL -o /tmp/nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${NVIM_ARCH}.tar.gz"
+sudo tar -C /opt -xzf /tmp/nvim.tar.gz
+sudo ln -sfn "/opt/nvim-linux-${NVIM_ARCH}/bin/nvim" /usr/local/bin/nvim
 
 # copy files
 mkdir -p "/home/$username/server"
